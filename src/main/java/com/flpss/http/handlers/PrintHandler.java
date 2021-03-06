@@ -15,10 +15,8 @@ public class PrintHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) {
 
-        String status = Driver.getStatus();
-
         Request request = Request.capture(exchange);
-        Response response = request.handle(status);
+        Response response = request.handle("STATIC");
         response.send();
     }
 }

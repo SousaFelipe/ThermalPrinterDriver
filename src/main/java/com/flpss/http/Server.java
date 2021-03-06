@@ -34,6 +34,10 @@ public class Server {
     public void start() {
         this.httpServer.setExecutor(null);
         this.httpServer.start();
+    }
+
+
+    public void stop() {
         this.httpServer.stop(0);
     }
 }

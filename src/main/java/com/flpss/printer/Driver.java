@@ -1,14 +1,11 @@
 package com.flpss.printer;
 
 
-import org.usb4java.Context;
-import org.usb4java.LibUsb;
-import org.usb4java.LibUsbException;
-import org.usb4java.DeviceList;
-import org.usb4java.DeviceDescriptor;
-import org.usb4java.Device;
-
+import javax.print.DocFlavor;
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -16,66 +13,50 @@ public class Driver {
 
 
 
-    private Context context = new Context();
-
-
-
-    public Driver() {
-
-        int result = LibUsb.init(this.context);
-
-        if (result != LibUsb.SUCCESS) {
-            throw new LibUsbException("Unable to initialize libusb.", result);
-        }
-    }
-
-
-
-    public List<DeviceDescriptor> deviceList() {
-        List<DeviceDescriptor> descriptors = new ArrayList<>();
-
-        DeviceList list = new DeviceList();
-        int result = LibUsb.getDeviceList(this.context, list);
-
-        if (result < 0) {
-            throw new LibUsbException("Unable to get device list", result);
-        }
+    public static List<PrintService> getPrinters() {
+        List<PrintService> printers = new ArrayList<>();
 
         try {
-            for (Device device : list) {
-
-                DeviceDescriptor descriptor = new DeviceDescriptor();
-                result = LibUsb.getDeviceDescriptor(device, descriptor);
-
-                if (result < 0) {
-                    throw new LibUsbException("Unable to read device descriptor", result);
-                }
-
-                descriptors.add(descriptor);
-            }
+            DocFlavor flavor = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
+            PrintService[] services = PrintServiceLookup.lookupPrintServices(flavor, null);
+            printers.addAll(Arrays.asList(services));
         }
-        finally {
-            LibUsb.freeDeviceList(list, true);
+        catch (Exception e) {
+            e.printStackTrace();
         }
 
-        LibUsb.exit(this.context);
-
-        return descriptors;
+        return printers;
     }
 
 
 
-    public static String getStatus() {
+    public static List<String> getPrinterNames() {
+        List<String> printerNames = new ArrayList<>();
 
-        String body = "";
-        Driver driver = new Driver();
-        List<DeviceDescriptor> devices = driver.deviceList();
-
-        for (DeviceDescriptor device : devices) {
-
-            body = body.concat("" + device.dump().replaceAll("(?m)^", "  ") + "\n");
+        if (Driver.getPrinters().size() > 0) {
+            for (PrintService service: Driver.getPrinters()) {
+                printerNames.add(service.getName());
+            }
         }
 
-        return body;
+        return printerNames;
+    }
+
+
+
+    public PrintService getService(String selectedPrinter) {
+        PrintService printer = null;
+
+        if (Driver.getPrinters().size() <= 0) {
+            return null;
+        }
+
+        for (PrintService service : Driver.getPrinters()) {
+            if (service.getName() != null && service.getName().contains(selectedPrinter)) {
+                printer = service;
+            }
+        }
+
+        return printer;
     }
 }

@@ -3,6 +3,7 @@ package com.flpss;
 
 import com.flpss.http.Server;
 
+
 public class App {
 
 
@@ -11,5 +12,7 @@ public class App {
     {
         Server server = new Server(8888);
         server.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(server::stop));
     }
 }
